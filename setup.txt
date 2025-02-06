@@ -1,0 +1,31 @@
+# 建立新的conda環境
+conda create -n ddocr python=3.11
+
+# 啟動環境
+conda activate ddocr
+
+# 安裝必要的套件
+pip install ddddocr
+pip install fastapi
+pip install python-multipart
+pip install uvicorn
+pip install pydantic
+
+# 可選：如果需要安裝其他相關套件
+pip install numpy
+pip install pillow
+pip install opencv-python-headless
+
+# 運行服務
+# python main.py
+
+# 注意事項：
+# 1. 確保已安裝Anaconda或Miniconda
+# 2. 建議使用Python 3.11版本以獲得最佳相容性
+# 3. 如果遇到VC++相關錯誤，請安裝Visual C++ Redistributable
+# 4. 服務默認運行在 http://localhost:8000
+
+# 其他常用指令：
+# 查看當前環境：conda env list
+# 退出環境：conda deactivate
+# 刪除環境：conda env remove -n ddocr 
