@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Body
+from fastapi import FastAPI, File, UploadFile, Body, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import ddddocr
@@ -7,6 +7,9 @@ import io
 from typing import Optional
 import base64
 from pydantic import BaseModel
+from datetime import datetime
+import logging
+import os
 
 class Base64Request(BaseModel):
     image: str
@@ -26,6 +29,8 @@ app = FastAPI(
 ALLOWED_ORIGINS = [
     "https://api.hlddian.com",  # 替換成你的前端域名
     "http://localhost:3000",  # 開發環境
+    "http://localhost:3001",  # 開發環境
+    "http://localhost:7688",  # 開發環境
     "http://localhost:8080"   # 開發環境
 ]
 
@@ -33,11 +38,28 @@ ALLOWED_ORIGINS = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,  # 只允許特定來源
-    allow_credentials=True,
-    allow_methods=["POST"],  # 只允許 POST 方法
-    allow_headers=["Content-Type"],  # 只允許必要的 headers
+    # allow_origins=["*"],  # 允許所有來源
+    allow_credentials=True,  # 允許攜帶認證
+    allow_methods=["GET", "POST", "OPTIONS"],  # 明確允許的HTTP方法
+    allow_headers=["*"],  # 允許所有headers
     max_age=3600,  # 預檢請求的快取時間（秒）
 )
+
+# 設置日誌
+log_dir = "logs"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s',
+    handlers=[
+        # logging.FileHandler(os.path.join(log_dir, f"access_{datetime.now().strftime('%Y%m%d')}.log")), # 記錄到文件
+        logging.StreamHandler()  # 同時輸出到控制台
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 # 初始化ddddocr (只需初始化一次)
 ocr = ddddocr.DdddOcr()
@@ -172,10 +194,78 @@ async def slide_comparison(
             status_code=500
         )
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = datetime.now()
+    origin = request.headers.get("origin", "Unknown origin")
+    host = request.headers.get("host", "Unknown host")
+    method = request.method
+    path = request.url.path
+    client_ip = request.client.host
+    
+    # 添加headers日誌
+    headers = dict(request.headers)
+    
+    log_message = f"""
+Request Details:
+Origin: {origin}
+Host: {host}
+Client IP: {client_ip}
+Method: {method}
+Path: {path}
+Headers: {headers}
+Time: {start_time}"""
+    
+    logger.info(log_message)
+    
+    try:
+        # 嘗試獲取請求體
+        if method == "POST":
+            body = await request.body()
+            logger.info(f"Request Body: {body.decode() if body else 'No body'}")
+    except Exception as e:
+        logger.error(f"Error reading request body: {str(e)}")
+    
+    try:
+        response = await call_next(request)
+        
+        # 記錄響應狀態
+        status_code = response.status_code
+        process_time = (datetime.now() - start_time).total_seconds()
+        
+        # 如果是錯誤響應，嘗試獲取詳細錯誤信息
+        if status_code >= 400:
+            response_body = b""
+            async for chunk in response.body_iterator:
+                response_body += chunk
+            logger.error(f"""
+Error Response:
+Status Code: {status_code}
+Response Body: {response_body.decode()}
+{'=' * 50}""")
+            
+            # 重新建立響應
+            return Response(
+                content=response_body,
+                status_code=status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type
+            )
+        
+        logger.info(f"Request processed in {process_time:.3f} seconds\n{'=' * 50}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"""
+Error during request processing:
+Error: {str(e)}
+{'=' * 50}""")
+        raise
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=7688,
         reload=True
     )
