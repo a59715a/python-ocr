@@ -19,13 +19,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# 添加 CORS 中間件
+# 設定允許的來源域名
+ALLOWED_ORIGINS = [
+    "https://api.hlddian.com",  # 替換成你的前端域名
+    "http://localhost:3000",  # 開發環境
+    "http://localhost:8080"   # 開發環境
+]
+
+# 添加 CORS 中間件，限制存取來源
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允許所有來源，生產環境建議設定具體的域名
+    allow_origins=ALLOWED_ORIGINS,  # 只允許特定來源
     allow_credentials=True,
-    allow_methods=["*"],  # 允許所有方法
-    allow_headers=["*"],  # 允許所有header
+    allow_methods=["POST"],  # 只允許 POST 方法
+    allow_headers=["Content-Type"],  # 只允許必要的 headers
+    max_age=3600,  # 預檢請求的快取時間（秒）
 )
 
 # 初始化ddddocr (只需初始化一次)
