@@ -22,7 +22,10 @@ app = FastAPI(
     description="基於ddddocr的驗證碼識別API服務",
     version="1.0.0",
     # 添加路徑前綴
-    root_path="/ddocr"
+    root_path="/ddocr",
+    # 關閉 Swagger UI 和 ReDoc
+    docs_url=None,
+    redoc_url=None
 )
 
 # 設定允許的來源域名
