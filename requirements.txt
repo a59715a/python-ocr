@@ -1,0 +1,7 @@
+ddddocr
+fastapi
+python-multipart
+uvicorn
+pydantic
+pillow
+opencv-python-headless 

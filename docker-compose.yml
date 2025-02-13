@@ -1,0 +1,23 @@
+version: '3'
+services:
+  ddddocr-api:
+    build: .
+    container_name: ddddocr-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./main.py:/app/main.py
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3 
