@@ -13,10 +13,13 @@ class Base64Request(BaseModel):
     beta: Optional[bool] = False
     probability: Optional[bool] = False
 
+# 建立子應用
 app = FastAPI(
     title="ddddocr API",
     description="基於ddddocr的驗證碼識別API服務",
-    version="1.0.0"
+    version="1.0.0",
+    # 添加路徑前綴
+    root_path="/ddocr"
 )
 
 # 設定允許的來源域名
