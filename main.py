@@ -28,10 +28,10 @@ app = FastAPI(
 # 設定允許的來源域名
 ALLOWED_ORIGINS = [
     "https://api.hlddian.com",  # 替換成你的前端域名
-    "http://localhost:3000",  # 開發環境
-    "http://localhost:3001",  # 開發環境
-    "http://localhost:7688",  # 開發環境
-    "http://localhost:8080"   # 開發環境
+    # "http://localhost:3000",  # 開發環境
+    # "http://localhost:3001",  # 開發環境
+    # "http://localhost:7688",  # 開發環境
+    # "http://localhost:8080"   # 開發環境
 ]
 
 # 添加 CORS 中間件，限制存取來源
